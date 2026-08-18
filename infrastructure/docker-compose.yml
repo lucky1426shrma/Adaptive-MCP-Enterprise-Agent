@@ -1,0 +1,215 @@
+# Docker Compose for the full stack: frontend, backend, three MCP
+# servers, Qdrant, PostgreSQL.
+#
+# STARTUP ORDER MATTERS and is NOT fully automated here — see
+# infrastructure/README.md for the exact sequence. In short: stateful
+# backing services (postgres, qdrant) must come up and be seeded/
+# ingested via the one-off `db-mcp-setup` / `rag-mcp-ingest` jobs
+# BEFORE the MCP servers that depend on their data are started. This
+# is a deliberate choice over chaining `depends_on: condition:
+# service_completed_successfully` for the one-off jobs — that Compose
+# condition exists in recent versions, but pinning behavior on it here
+# would assert a certainty about your installed Compose version this
+# project has no way to verify (same honesty principle applied to
+# every other version-sensitive dependency in this project — see e.g.
+# services/rag-mcp/app/server.py's MCP-mounting caveat). Explicit,
+# documented manual steps are more honest than a compose file that
+# might silently race on an older Compose version.
+#
+# VERIFICATION NOTE: this file was authored without the ability to run
+# `docker compose up` (the sandbox this project was built in has no
+# Docker daemon / network access — see the root README). The service
+# definitions follow well-established, stable Compose syntax, but this
+# is the least-verified file in the entire project. Run
+# `docker compose config` first to validate syntax before `up`.
+
+services:
+  # --- Stateful backing services ---
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:-postgres}
+      POSTGRES_DB: adaptive_mcp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.1
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  # --- One-off setup jobs (profile "setup" — NOT started by a plain
+  #     `docker compose up`; run explicitly, once, per
+  #     infrastructure/README.md's startup sequence) ---
+
+  db-mcp-setup:
+    build:
+      context: ../services/db-mcp
+    profiles: ["setup"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      [
+        "python", "-m", "db.setup_and_seed",
+        "--admin-database-url", "postgresql://postgres:${POSTGRES_ADMIN_PASSWORD:-postgres}@postgres:5432/adaptive_mcp",
+        "--reader-password", "${DB_MCP_READER_PASSWORD:?set DB_MCP_READER_PASSWORD in infrastructure/.env}"
+      ]
+
+  rag-mcp-ingest:
+    build:
+      context: ../services/rag-mcp
+    profiles: ["setup"]
+    depends_on:
+      qdrant:
+         condition: service_started
+    command: ["python", "-m", "scripts.ingest", "--docs-dir", "data/sample_docs"]
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: rag_chunks
+      CHUNKS_INDEX_PATH: /app/data/index/chunks.jsonl
+      EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
+    volumes:
+      - rag_index_data:/app/data/index
+
+  # --- MCP servers ---
+
+  db-mcp:
+    build:
+      context: ../services/db-mcp
+    environment:
+      SERVICE_NAME: db-mcp
+      ENVIRONMENT: production
+      HOST: 0.0.0.0
+      PORT: "8002"
+      AUTH_TOKEN: ${DB_MCP_AUTH_TOKEN:?set DB_MCP_AUTH_TOKEN in infrastructure/.env}
+      DATABASE_URL: postgresql://db_mcp_reader:${DB_MCP_READER_PASSWORD:?set DB_MCP_READER_PASSWORD in infrastructure/.env}@postgres:5432/adaptive_mcp
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
+    # NOTE: depends on db-mcp-setup having actually been run once (see
+    # infrastructure/README.md) — Compose cannot express "this profiled
+    # one-off job completed at some point in the past" as a startup
+    # condition, so this is enforced by documentation/process, not code.
+
+  rag-mcp:
+    build:
+      context: ../services/rag-mcp
+    environment:
+      SERVICE_NAME: rag-mcp
+      ENVIRONMENT: production
+      HOST: 0.0.0.0
+      PORT: "8001"
+      AUTH_TOKEN: ${RAG_MCP_AUTH_TOKEN:?set RAG_MCP_AUTH_TOKEN in infrastructure/.env}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: rag_chunks
+      CHUNKS_INDEX_PATH: /app/data/index/chunks.jsonl
+      EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
+      RERANKER_MODEL: cross-encoder/ms-marco-MiniLM-L-6-v2
+      ENABLE_RERANKER: ${RAG_ENABLE_RERANKER:-true}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    depends_on:
+      qdrant:
+        condition: service_started
+    volumes:
+      - rag_index_data:/app/data/index
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    # Same caveat as db-mcp: requires rag-mcp-ingest to have been run
+    # once first (see infrastructure/README.md).
+
+  github-mcp:
+    build:
+      context: ../services/github-mcp
+    environment:
+      SERVICE_NAME: github-mcp
+      ENVIRONMENT: production
+      HOST: 0.0.0.0
+      PORT: "8003"
+      AUTH_TOKEN: ${GITHUB_MCP_AUTH_TOKEN:?set GITHUB_MCP_AUTH_TOKEN in infrastructure/.env}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      ALLOWED_REPOSITORIES: ${ALLOWED_REPOSITORIES:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    ports:
+      - "8003:8003"
+    restart: unless-stopped
+
+  # --- Backend (MCP client + LangGraph agent) ---
+
+  backend:
+    build:
+      context: ../backend
+    environment:
+      ENVIRONMENT: production
+      # NOTE: trailing slash is required. FastMCP's Streamable HTTP app is
+      # mounted at "/mcp" (see services/*/app/server.py), and Starlette's
+      # Mount matching redirects a bare "/mcp" POST to "/mcp/" with a 307.
+      # Some HTTP client / proxy combinations don't reliably replay a POST
+      # body across that redirect, which surfaced as a 404 on the
+      # redirected request in practice. Pointing directly at "/mcp/"
+      # avoids the redirect hop entirely.
+      RAG_MCP_URL: http://rag-mcp:8001/mcp/
+      RAG_MCP_AUTH_TOKEN: ${RAG_MCP_AUTH_TOKEN:?set RAG_MCP_AUTH_TOKEN in infrastructure/.env}
+      DB_MCP_URL: http://db-mcp:8002/mcp/
+      DB_MCP_AUTH_TOKEN: ${DB_MCP_AUTH_TOKEN:?set DB_MCP_AUTH_TOKEN in infrastructure/.env}
+      GITHUB_MCP_URL: http://github-mcp:8003/mcp/
+      GITHUB_MCP_AUTH_TOKEN: ${GITHUB_MCP_AUTH_TOKEN:?set GITHUB_MCP_AUTH_TOKEN in infrastructure/.env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?set OPENROUTER_API_KEY in infrastructure/.env}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:?set OPENROUTER_MODEL in infrastructure/.env — must be an explicitly free model}
+      BACKEND_API_KEY: ${BACKEND_API_KEY:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAME: adaptive-mcp-enterprise-agent-backend
+    depends_on:
+      rag-mcp:
+        condition: service_started
+      db-mcp:
+        condition: service_started
+      github-mcp:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  # --- Frontend ---
+
+  frontend:
+    build:
+      context: ../frontend
+    environment:
+      BACKEND_URL: http://backend:8000
+      BACKEND_API_KEY: ${BACKEND_API_KEY:-}
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  qdrant_data:
+  rag_index_data:
