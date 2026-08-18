@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environment / secrets
+.env
+*.env.local
+*.env.*.local
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+frontend/.env*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# Evaluation reports (generated at runtime, never fabricated/committed)
+evaluation/reports/*.json
+
+# Uploaded zip artifacts (redundant - extracted code is at root)
+zip/
+zip.zip
+*.zip
+cursor zip/
+cursor zip.zip
+
