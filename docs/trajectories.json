@@ -1,0 +1,223 @@
+[
+  {
+    "trajectory_id": "traj_001_multi_modal_incident_investigation",
+    "test_category": "multi_tool",
+    "user_query": "What are our current payment failure statistics for today, and how do they compare against the policy limits set after the March 2026 incident?",
+    "execution_time_ms": 2140.5,
+    "total_iterations": 2,
+    "final_status": "success",
+    "steps": [
+      {
+        "step_number": 1,
+        "phase": "reasoning_and_tool_selection",
+        "thought": "The user asks for today's live payment failure statistics and compares them against the policy limits established after the March 2026 incident. I need to query live payment statistics from PostgreSQL using db-mcp first, then retrieve the postmortem policy documents using rag-mcp.",
+        "tool_call": {
+          "server": "db-mcp",
+          "tool_name": "query_payments_summary",
+          "arguments": {
+            "period": "today"
+          }
+        },
+        "tool_response": {
+          "status": "success",
+          "period": "today",
+          "metrics": {
+            "total_attempts": 2629,
+            "failed_attempts": 58,
+            "failure_rate": 0.0221,
+            "gateway_errors": 42,
+            "validation_errors": 4,
+            "declined": 12
+          }
+        }
+      },
+      {
+        "step_number": 2,
+        "phase": "document_retrieval_and_assessment",
+        "thought": "I now have live database metrics showing a 2.21% failure rate today. Next, I must query rag-mcp to retrieve the March 2026 incident report and the payment retry policy to check the alerting threshold.",
+        "tool_call": {
+          "server": "rag-mcp",
+          "tool_name": "search_knowledge",
+          "arguments": {
+            "query": "March 2026 payment gateway incident retry policy alerting threshold"
+          }
+        },
+        "tool_response": {
+          "status": "success",
+          "retrieved_chunks": [
+            {
+              "chunk_id": "payment-retry-policy#chunk_02",
+              "document_id": "payment-retry-policy.md",
+              "score": 0.892,
+              "content": "Alerting Thresholds: A gateway error rate exceeding 3.0% over a 15-minute sliding window triggers an automated P2 incident alert. This threshold was established following the March 14, 2026 connection pool saturation incident."
+            },
+            {
+              "chunk_id": "2026-03-payment-gateway-incident#chunk_01",
+              "document_id": "2026-03-payment-gateway-incident.md",
+              "score": 0.854,
+              "content": "On March 14, 2026, between 14:10 and 15:40 UTC, the payment gateway experienced a peak 6.2% failure rate due to connection pool exhaustion."
+            }
+          ]
+        }
+      },
+      {
+        "step_number": 3,
+        "phase": "self_reflection_and_assessment",
+        "assessment": {
+          "relevance_score": 0.94,
+          "context_sufficient": true,
+          "missing_information": [],
+          "verdict": "SUFFICIENT_EVIDENCE"
+        }
+      },
+      {
+        "step_number": 4,
+        "phase": "final_synthesis",
+        "answer": "Based on live database queries and retrieved policy documentation:\n\n1. **Today's Payment Failure Statistics (2026-08-30):**\n   - Total Attempts: **2,629**\n   - Failed Attempts: **58**\n   - Failure Rate: **2.21%** (42 gateway errors, 12 declines, 4 validation errors)\n\n2. **Comparison with Post-March 2026 Policy Limits:**\n   - Following the March 14, 2026 incident (which reached a 6.2% peak failure rate), the policy established a **3.0% alerting threshold**.\n   - **Status:** Today's failure rate of **2.21%** is below the 3.0% threshold and within normal operational policy bounds.",
+        "citations": [
+          "db-mcp:query_payments_summary(period='today')",
+          "payment-retry-policy.md#chunk_02",
+          "2026-03-payment-gateway-incident.md#chunk_01"
+        ]
+      }
+    ]
+  },
+  {
+    "trajectory_id": "traj_002_rag_knowledge_retrieval",
+    "test_category": "rag_only",
+    "user_query": "What does our authentication architecture document say about how service-to-service tokens are rotated?",
+    "execution_time_ms": 1120.4,
+    "total_iterations": 1,
+    "final_status": "success",
+    "steps": [
+      {
+        "step_number": 1,
+        "phase": "reasoning_and_tool_selection",
+        "thought": "This query asks about service-to-service token rotation policies in the architecture documentation. I will query the rag-mcp server.",
+        "tool_call": {
+          "server": "rag-mcp",
+          "tool_name": "search_knowledge",
+          "arguments": {
+            "query": "authentication architecture service to service token rotation"
+          }
+        },
+        "tool_response": {
+          "status": "success",
+          "retrieved_chunks": [
+            {
+              "chunk_id": "authentication-architecture#chunk_03",
+              "document_id": "authentication-architecture.md",
+              "score": 0.915,
+              "content": "Service-to-Service Token Rotation: Internal microservices authenticate via JWT bearer tokens signed with RS256. Private keys are rotated every 90 days using AWS Secrets Manager with an automated 24-hour dual-signature grace window."
+            }
+          ]
+        }
+      },
+      {
+        "step_number": 2,
+        "phase": "final_synthesis",
+        "answer": "According to the **Authentication Architecture** documentation:\n- Internal microservices authenticate using **RS256-signed JWT bearer tokens**.\n- RSA private keys are rotated every **90 days** via AWS Secrets Manager.\n- A **24-hour dual-signature grace window** is provided during rotation to prevent downtime.",
+        "citations": [
+          "authentication-architecture.md#chunk_03"
+        ]
+      }
+    ]
+  },
+  {
+    "trajectory_id": "traj_003_github_commit_history_search",
+    "test_category": "github_only",
+    "user_query": "What recent commits touched the payment-service repository?",
+    "execution_time_ms": 890.2,
+    "total_iterations": 1,
+    "final_status": "success",
+    "steps": [
+      {
+        "step_number": 1,
+        "phase": "reasoning_and_tool_selection",
+        "thought": "The user is looking for recent git commits in the payment-service repository. I will query the github-mcp server.",
+        "tool_call": {
+          "server": "github-mcp",
+          "tool_name": "search_commits",
+          "arguments": {
+            "repository": "myorg/payment-service",
+            "limit": 5
+          }
+        },
+        "tool_response": {
+          "status": "success",
+          "repository": "myorg/payment-service",
+          "commits": [
+            {
+              "sha": "a4f91b2c8e",
+              "author": "devops-team",
+              "date": "2026-08-22T14:30:00Z",
+              "message": "fix(pool): increase dynamic connection pool maximum capacity from 20 to 150"
+            },
+            {
+              "sha": "7b819f0321",
+              "author": "infra-bot",
+              "date": "2026-08-20T09:15:00Z",
+              "message": "chore(deps): upgrade asyncpg to version 0.29.0"
+            }
+          ]
+        }
+      },
+      {
+        "step_number": 2,
+        "phase": "final_synthesis",
+        "answer": "Here are the recent commits for **myorg/payment-service**:\n- `a4f91b2c8e` - *fix(pool): increase dynamic connection pool maximum capacity from 20 to 150* (by `devops-team` on 2026-08-22)\n- `7b819f0321` - *chore(deps): upgrade asyncpg to version 0.29.0* (by `infra-bot` on 2026-08-20)",
+        "citations": [
+          "github-mcp:search_commits(repository='myorg/payment-service')"
+        ]
+      }
+    ]
+  },
+  {
+    "trajectory_id": "traj_004_self_corrective_loop_guard",
+    "test_category": "insufficient_evidence",
+    "user_query": "What caused the deployment failure on cluster gamma-9 yesterday?",
+    "execution_time_ms": 3120.8,
+    "total_iterations": 2,
+    "final_status": "degraded_context",
+    "steps": [
+      {
+        "step_number": 1,
+        "phase": "initial_retrieval_attempt",
+        "thought": "Searching rag-mcp for deployment failures on cluster gamma-9.",
+        "tool_call": {
+          "server": "rag-mcp",
+          "tool_name": "search_knowledge",
+          "arguments": {
+            "query": "deployment failure cluster gamma-9 yesterday"
+          }
+        },
+        "tool_response": {
+          "status": "success",
+          "retrieved_chunks": []
+        }
+      },
+      {
+        "step_number": 2,
+        "phase": "loop_guard_self_correction",
+        "thought": "Initial query returned 0 matches. The rag_loop_guard detected missing evidence and triggered an autonomous query rewrite.",
+        "tool_call": {
+          "server": "rag-mcp",
+          "tool_name": "search_knowledge",
+          "arguments": {
+            "query": "cluster deployment failure postmortem"
+          }
+        },
+        "tool_response": {
+          "status": "success",
+          "retrieved_chunks": []
+        }
+      },
+      {
+        "step_number": 3,
+        "phase": "force_stop_and_honest_degradation",
+        "answer": "I searched internal documentation for cluster 'gamma-9' deployment failures, but no matching postmortem or incident records were found in the knowledge base. Please verify the cluster name or ingest the relevant incident report.",
+        "citations": []
+      }
+    ]
+  }
+]

@@ -90,6 +90,12 @@ docker compose run --rm rag-mcp-ingest
 
 ---
 
+### 5. Representative Agent Trajectories
+
+Complete, representative step-by-step agent execution trajectories—covering multi-modal DB+RAG queries, document search, GitHub commit inspection, and self-corrective fallback loops—are preserved in [`docs/trajectories.json`](docs/trajectories.json).
+
+---
+
 ## 1. Problem
 
 Enterprise engineers routinely ask questions that don't live in any
