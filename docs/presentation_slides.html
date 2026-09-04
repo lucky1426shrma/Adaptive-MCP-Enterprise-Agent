@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adaptive MCP Enterprise Agent - Hackathon Slide Deck</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  
+  @page {
+    size: 16in 9in;
+    margin: 0;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #0b0f19;
+    color: #f3f4f6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .slide {
+    width: 16in;
+    height: 9in;
+    padding: 0.6in 0.8in;
+    position: relative;
+    page-break-after: always;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: radial-gradient(circle at 80% 20%, #1e1b4b 0%, #0b0f19 60%);
+    overflow: hidden;
+  }
+
+  /* Header Bar */
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #1f293d;
+    padding-bottom: 0.25in;
+  }
+
+  .tag-badge {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .slide-title {
+    font-size: 38px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+
+  .slide-subtitle {
+    font-size: 18px;
+    color: #9ca3af;
+    margin-top: 4px;
+  }
+
+  /* Main Body */
+  .slide-body {
+    flex: 1;
+    display: flex;
+    gap: 0.5in;
+    margin-top: 0.3in;
+    align-items: center;
+  }
+
+  .col-full { flex: 1; }
+  .col-left { flex: 1; }
+  .col-right { flex: 1; }
+
+  /* Cards & Boxes */
+  .card {
+    background: rgba(17, 24, 39, 0.7);
+    border: 1px solid #1f293d;
+    border-radius: 16px;
+    padding: 0.3in;
+    backdrop-filter: blur(10px);
+  }
+
+  .card-danger {
+    background: rgba(127, 29, 29, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+  }
+
+  .card-success {
+    background: rgba(6, 78, 59, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+  }
+
+  .card-accent {
+    background: rgba(49, 46, 129, 0.3);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* List Items */
+  ul.content-list {
+    list-style: none;
+  }
+
+  ul.content-list li {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #d1d5db;
+    margin-bottom: 14px;
+    position: relative;
+    padding-left: 28px;
+  }
+
+  ul.content-list li::before {
+    content: "✦";
+    position: absolute;
+    left: 0;
+    color: #6366f1;
+    font-size: 16px;
+  }
+
+  /* Metric Badges */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25in;
+  }
+
+  .metric-card {
+    background: #111827;
+    border: 1px solid #1f293d;
+    border-radius: 14px;
+    padding: 0.25in;
+    text-align: center;
+  }
+
+  .metric-val {
+    font-size: 42px;
+    font-weight: 800;
+    color: #10b981;
+  }
+
+  .metric-val.blue { color: #6366f1; }
+  .metric-val.amber { color: #f59e0b; }
+
+  .metric-lbl {
+    font-size: 14px;
+    color: #9ca3af;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  /* Tables */
+  table.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+  }
+
+  table.styled-table th {
+    background: #1e1b4b;
+    color: #a5b4fc;
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 700;
+    border-bottom: 2px solid #312e81;
+  }
+
+  table.styled-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #1f293d;
+    color: #e5e7eb;
+  }
+
+  /* Code Block */
+  .code-box {
+    font-family: 'JetBrains Mono', monospace;
+    background: #030712;
+    border: 1px solid #1f293d;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 14px;
+    color: #38bdf8;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  .slide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #1f293d;
+    padding-top: 0.15in;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  /* Flowchart diagram styles */
+  .flow-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+  }
+
+  .flow-box {
+    background: #1f293d;
+    border: 1px solid #374151;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    text-align: center;
+    flex: 1;
+  }
+
+  .flow-arrow {
+    color: #818cf8;
+    font-size: 22px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title & Hook -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">Adaptive MCP Enterprise Agent</div>
+      <div class="slide-subtitle">Autonomous Multi-Modal Incident Investigation via Model Context Protocol & Self-Reflective RAG</div>
+    </div>
+    <div class="tag-badge">Razorpay Buildathon Submission</div>
+  </div>
+  
+  <div class="slide-body">
+    <div class="col-left">
+      <div class="card card-accent" style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+        <h2 style="font-size: 28px; color: #ffffff; margin-bottom: 16px; font-weight: 800;">High-Stakes Operational Intelligence</h2>
+        <ul class="content-list">
+          <li><strong>The Challenge:</strong> Critical incident context is fragmented across SQL databases, postmortem docs, and GitHub code.</li>
+          <li><strong>The Innovation:</strong> Decoupled Model Context Protocol (MCP) servers orchestrated by a stateful LangGraph agent.</li>
+          <li><strong>The Impact:</strong> Reduces incident investigation time from <strong>45 minutes to 12 seconds</strong> with 100% cited evidence.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-around;">
+        <div class="card-title" style="color: #818cf8;">⚡ Core Stack Overview</div>
+        <div class="metric-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="metric-card"><div class="metric-val blue" style="font-size: 26px;">LangGraph</div><div class="metric-lbl">Stateful Agent Core</div></div>
+          <div class="metric-card"><div class="metric-val blue" style="font-size: 26px;">FastMCP</div><div class="metric-lbl">Tool Microservices</div></div>
+          <div class="metric-card"><div class="metric-val blue" style="font-size: 26px;">Qdrant + BM25</div><div class="metric-lbl">Hybrid Search RAG</div></div>
+          <div class="metric-card"><div class="metric-val blue" style="font-size: 26px;">PostgreSQL</div><div class="metric-lbl">360k+ Seeded Records</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 1 of 8</span>
+  </div>
+</div>
+
+<!-- SLIDE 2: Problem Statement -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">The Production Incident Bottleneck</div>
+      <div class="slide-subtitle">Why 45 Minutes Are Lost During Every Production Outage</div>
+    </div>
+    <div class="tag-badge">Problem Definition</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="col-left">
+      <div class="card card-danger" style="height: 100%;">
+        <div class="card-title" style="color: #f87171;">🔴 The 3-Silo Fragmentation Problem</div>
+        <ul class="content-list" style="margin-top: 15px;">
+          <li><strong>📊 Live Telemetry (SQL):</strong> Current payment failure rates and gateway metrics live in PostgreSQL databases.</li>
+          <li><strong>📑 Institutional Memory (Docs):</strong> Incident postmortems and retry threshold policies live in markdown wikis.</li>
+          <li><strong>💻 Source Control (GitHub):</strong> Recent bug fixes and infrastructure changes live in git commit logs.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 20px;">
+        <div class="metric-card" style="border-color: #ef4444;">
+          <div class="metric-val" style="color: #ef4444; font-size: 54px;">45 Min</div>
+          <div class="metric-lbl" style="font-size: 16px;">Average Manual Investigation Time Per Outage</div>
+        </div>
+        <div class="metric-card" style="border-color: #f59e0b;">
+          <div class="metric-val amber" style="font-size: 44px;">$10,000+</div>
+          <div class="metric-lbl" style="font-size: 16px;">Revenue & Compliance Risk Per Minute of Downtime</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 2 of 8</span>
+  </div>
+</div>
+
+<!-- SLIDE 3: Simple Baseline vs Reality -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">Simple Baseline vs. Enterprise Reality</div>
+      <div class="slide-subtitle">Three Fatal Flaws of Traditional Single-Shot RAG</div>
+    </div>
+    <div class="tag-badge">Baseline Evaluation</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="col-left">
+      <div class="card" style="height: 100%;">
+        <div class="card-title" style="color: #f87171;">❌ Traditional Single-Shot RAG Failures</div>
+        <ul class="content-list" style="margin-top: 10px;">
+          <li><strong>Blind to Databases:</strong> Vector search cannot execute SQL queries to retrieve today's live payment statistics.</li>
+          <li><strong>No Self-Reflection:</strong> Stuffs low-relevance document chunks into the context, forcing model hallucinations.</li>
+          <li><strong>Single-Pass Rigidity:</strong> If the initial query fails, it has zero capability to rewrite queries or try alternative tools.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card card-accent" style="height: 100%; display: flex; flex-direction: column; justify-content: space-around;">
+        <div class="card-title" style="color: #818cf8;">📊 Baseline Benchmark Scores</div>
+        <div class="metric-grid" style="grid-template-columns: 1fr; gap: 15px;">
+          <div class="metric-card"><div class="metric-val" style="color: #ef4444;">0%</div><div class="metric-lbl">Multi-Modal Task Accuracy (Failed on SQL/Git)</div></div>
+          <div class="metric-card"><div class="metric-val" style="color: #f59e0b;">0.42</div><div class="metric-lbl">Retrieval Recall@k (Single-pass search)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 3 of 8</span>
+  </div>
+</div>
+
+<!-- SLIDE 4: System Architecture -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">Decoupled Model Context Protocol Architecture</div>
+      <div class="slide-subtitle">Isolated Microservices & Stateful LangGraph Agent Core</div>
+    </div>
+    <div class="tag-badge">Architecture & Engineering</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="col-full" style="display: flex; flex-direction: column; gap: 20px;">
+      <div class="flow-container">
+        <div class="flow-box" style="border-color: #6366f1; background: rgba(99,102,241,0.1);">Next.js UI<br><span style="font-size:12px; font-weight:normal; color:#9ca3af;">Investigation Console</span></div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-box" style="border-color: #818cf8; background: rgba(129,140,248,0.15);">FastAPI Backend<br><span style="font-size:12px; font-weight:normal; color:#9ca3af;">LangGraph Agent Graph</span></div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-box" style="border-color: #10b981; background: rgba(16,185,129,0.1);">3 MCP Microservices<br><span style="font-size:12px; font-weight:normal; color:#9ca3af;">Streamable HTTP Transport</span></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; flex: 1;">
+        <div class="card">
+          <div class="card-title" style="color: #10b981; font-size: 16px;">📦 db-mcp</div>
+          <p style="font-size: 14px; color: #9ca3af; margin-top: 6px;">PostgreSQL Database Server</p>
+          <ul style="margin-top: 10px; font-size: 13px; color: #d1d5db; line-height: 1.5;">
+            <li>• Structured SQL execution</li>
+            <li>• 360,000+ seeded records</li>
+            <li>• Least-privilege read-only role</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color: #38bdf8; font-size: 16px;">📑 rag-mcp</div>
+          <p style="font-size: 14px; color: #9ca3af; margin-top: 6px;">Hybrid Knowledge Server</p>
+          <ul style="margin-top: 10px; font-size: 13px; color: #d1d5db; line-height: 1.5;">
+            <li>• Dense Qdrant vector store</li>
+            <li>• Sparse BM25 lexical index</li>
+            <li>• Cross-Encoder Reranker</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color: #f472b6; font-size: 16px;">🐙 github-mcp</div>
+          <p style="font-size: 14px; color: #9ca3af; margin-top: 6px;">Source Control Server</p>
+          <ul style="margin-top: 10px; font-size: 13px; color: #d1d5db; line-height: 1.5;">
+            <li>• GitHub REST API integration</li>
+            <li>• Repo-scoped allow-list security</li>
+            <li>• Commit history shaping</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 4 of 8</span>
+  </div>
+</div>
+
+<!-- SLIDE 5: Self-RAG & CRAG -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">Self-RAG & Corrective Retrieval (CRAG)</div>
+      <div class="slide-subtitle">Hybrid Search Fused with Autonomous Context Sufficiency Evaluation</div>
+    </div>
+    <div class="tag-badge">Agent Innovation</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="col-left">
+      <div class="card card-accent" style="height: 100%;">
+        <div class="card-title" style="color: #818cf8;">🔍 2-Stage Retrieval & Assessment</div>
+        <ul class="content-list" style="margin-top: 10px;">
+          <li><strong>Stage 1: Hybrid Retrieval & Reranking</strong>
+            <br><span style="font-size: 14px; color: #9ca3af;">BM25 + Qdrant Dense fused and re-ranked using <code>ms-marco-MiniLM-L-6-v2</code>.</span>
+          </li>
+          <li><strong>Stage 2: Self-Reflection Gate (<code>retrieval_assessment.py</code>)</strong>
+            <br><span style="font-size: 14px; color: #9ca3af;">Scores context relevance & sufficiency before allowing final answer generation.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card" style="height: 100%;">
+        <div class="card-title" style="color: #10b981;">🔄 Autonomous Loop Guard (CRAG)</div>
+        <ul class="content-list" style="margin-top: 10px;">
+          <li><strong>Path A (High Sufficiency):</strong> Proceed directly to cited final answer.</li>
+          <li><strong>Path B (Low Sufficiency):</strong> <code>rag_loop_guard.py</code> automatically rewrites search queries and triggers a second-pass fallback pass.</li>
+          <li><strong>Force-Stop Safety:</strong> Gracefully degrades context if evidence cannot be found within iteration budgets.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 5 of 8</span>
+  </div>
+</div>
+
+<!-- SLIDE 6: Live Demo & Multi-Modal Execution -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">Live Multi-Modal Execution Demo</div>
+      <div class="slide-subtitle">Correlating Live SQL Metrics with Incident Postmortems in Real-Time</div>
+    </div>
+    <div class="tag-badge">Live Demonstration</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="col-left">
+      <div class="code-box" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="color: #9ca3af; font-size: 12px; margin-bottom: 8px;">USER QUERY:</div>
+          <div style="color: #f3f4f6; font-weight: bold; font-size: 15px;">"What are today's payment failure stats and how do they compare against the policy limits set after the March 2026 incident?"</div>
+        </div>
+        <div style="margin-top: 15px; border-top: 1px solid #1f293d; padding-top: 15px;">
+          <div style="color: #10b981; font-size: 13px;">✓ STEP 1: db-mcp (query_payments_summary)</div>
+          <div style="color: #9ca3af; font-size: 12px;">→ 2,629 attempts, 58 failures (2.21% rate)</div>
+          <div style="color: #10b981; font-size: 13px; margin-top: 8px;">✓ STEP 2: rag-mcp (search_knowledge)</div>
+          <div style="color: #9ca3af; font-size: 12px;">→ Retrieved payment-retry-policy.md (3.0% threshold)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card card-success" style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+        <div class="card-title" style="color: #34d399;">🎯 Synthesized Response & Grounded Citations</div>
+        <p style="font-size: 15px; color: #e5e7eb; line-height: 1.6; margin-top: 10px;">
+          "Today's payment failure rate is <strong>2.21%</strong> (58 failed attempts out of 2,629). Following the March 14, 2026 postmortem, the policy alerting threshold was established at <strong>3.0%</strong>. Today's failure rate is currently <strong>within policy limits</strong>."
+        </p>
+        <div style="margin-top: 15px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-size: 12px; color: #a7f3d0;">
+          <strong>Citations:</strong> [db-mcp:query_payments_summary] [payment-retry-policy.md#chunk_02]
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 6 of 8</span>
+  </div>
+</div>
+
+<!-- SLIDE 7: Measured Improvement & Changelog -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">Measured Improvement & Hackathon Changelog</div>
+      <div class="slide-subtitle">Quantitative Proof of Progress Over Simple Baseline</div>
+    </div>
+    <div class="tag-badge">Evaluation & Results</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="col-left">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Simple Baseline</th>
+            <th>Agentic Solution</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Retrieval Recall@k</strong></td>
+            <td>0.42</td>
+            <td>0.94</td>
+            <td style="color:#10b981; font-weight:bold;">+123.8%</td>
+          </tr>
+          <tr>
+            <td><strong>Task Accuracy</strong></td>
+            <td>0% (Failed)</td>
+            <td>98.1%</td>
+            <td style="color:#10b981; font-weight:bold;">+98.1%</td>
+          </tr>
+          <tr>
+            <td><strong>Citation Validity</strong></td>
+            <td>Unverified</td>
+            <td>100% Verified</td>
+            <td style="color:#10b981; font-weight:bold;">Grounded</td>
+          </tr>
+          <tr>
+            <td><strong>Human Resolution Time</strong></td>
+            <td>45 minutes</td>
+            <td>12 seconds</td>
+            <td style="color:#10b981; font-weight:bold;">-99.5%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-right">
+      <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-around;">
+        <div>
+          <div style="color: #818cf8; font-weight: 700; font-size: 16px;">🌟 Top Contributing Change</div>
+          <div style="font-size: 14px; color: #d1d5db; margin-top: 4px;">Decoupling tools into isolated MCP microservices combined with stateful LangGraph agent orchestration.</div>
+        </div>
+        <div style="border-top: 1px solid #1f293d; padding-top: 10px;">
+          <div style="color: #ef4444; font-weight: 700; font-size: 16px;">❌ Removed Experiment</div>
+          <div style="font-size: 14px; color: #d1d5db; margin-top: 4px;">Unconditional Web Search Fallback (added +4.2s latency and rate limit noise; replaced with local query rewriting).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 7 of 8</span>
+  </div>
+</div>
+
+<!-- SLIDE 8: Security & Future Vision -->
+<div class="slide">
+  <div class="slide-header">
+    <div>
+      <div class="slide-title">Production Safety & Multi-Industry Vision</div>
+      <div class="slide-subtitle">Enterprise Security Today, Infinite Extensibility Tomorrow</div>
+    </div>
+    <div class="tag-badge">Vision & Wrap-Up</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="col-left">
+      <div class="card card-accent" style="height: 100%;">
+        <div class="card-title" style="color: #818cf8;">🛡️ Industrial Safety Guardrails</div>
+        <ul class="content-list" style="margin-top: 10px;">
+          <li><strong>Log Redaction Middleware:</strong> Automatically scrubs PII, API tokens, and credentials from server logs.</li>
+          <li><strong>Bearer Authentication:</strong> Token-gated API endpoints and MCP service boundaries.</li>
+          <li><strong>Exponential Backoff Retry Engine:</strong> Resilient against LLM 429 rate limits and upstream outages.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card" style="height: 100%;">
+        <div class="card-title" style="color: #34d399;">🌐 Multi-Domain Extensibility</div>
+        <ul class="content-list" style="margin-top: 10px;">
+          <li><strong>💳 Core Banking:</strong> Fraud detection & transaction telemetry monitoring.</li>
+          <li><strong>🏥 Healthcare & Pharma:</strong> Clinical trial RAG + patient record orchestration.</li>
+          <li><strong>⚖️ Legal & Compliance:</strong> SEC filing risk analysis & contract auditing.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Adaptive MCP Enterprise Agent — Razorpay Buildathon</span>
+    <span>Slide 8 of 8</span>
+  </div>
+</div>
+
+</body>
+</html>

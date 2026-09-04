@@ -81,6 +81,11 @@ class OpenRouterProvider(LLMProvider):
             # Retry up to 3 times on rate limits or transient upstream errors
             max_attempts = 3
             backoff = 2.0  # seconds
+            response = None
+            data = None
+            choice = None
+            start = time.perf_counter()
+
             for attempt in range(1, max_attempts + 1):
                 start = time.perf_counter()
                 try:
@@ -95,7 +100,6 @@ class OpenRouterProvider(LLMProvider):
                 if response.status_code == 404:
                     raise LLMModelUnavailableError(f"OpenRouter model '{self._model}' was not found (404).")
                 if response.status_code == 429:
-                    # Respect Retry-After if present, otherwise exponential backoff
                     retry_after = response.headers.get("Retry-After")
                     wait = float(retry_after) if retry_after else backoff * attempt
                     if attempt < max_attempts:
@@ -134,16 +138,37 @@ class OpenRouterProvider(LLMProvider):
                         f"OpenRouter returned {response.status_code}: {response.text[:200]}"
                     )
 
-                # Success — parse the response
-                break
+                try:
+                    data = response.json()
+                except json.JSONDecodeError as exc:
+                    raise LLMResponseError(f"OpenRouter returned invalid JSON: {exc}") from exc
 
-            try:
-                data = response.json()
-                choice = data["choices"][0]
-                raw_message = choice["message"]
-                usage_raw = data.get("usage", {}) or {}
-            except (KeyError, IndexError, json.JSONDecodeError) as exc:
-                raise LLMResponseError(f"Unexpected OpenRouter response shape: {exc}") from exc
+                if "error" in data:
+                    err_msg = str(data["error"].get("message") if isinstance(data["error"], dict) else data["error"])
+                    if attempt < max_attempts and any(k in err_msg.lower() for k in ["overloaded", "rate limit", "busy", "capacity", "502", "503"]):
+                        import asyncio
+                        logger.warning(
+                            "openrouter_embedded_error_retrying",
+                            extra={
+                                "event": "openrouter_embedded_error_retrying",
+                                "attempt": attempt,
+                                "error_message": err_msg,
+                                "model": self._model,
+                            },
+                        )
+                        await asyncio.sleep(backoff * attempt)
+                        continue
+                    raise LLMResponseError(f"OpenRouter returned error payload: {err_msg}")
+
+                try:
+                    choice = data["choices"][0]
+                    raw_message = choice["message"]
+                    usage_raw = data.get("usage", {}) or {}
+                except (KeyError, IndexError) as exc:
+                    raise LLMResponseError(f"Unexpected OpenRouter response shape: {exc}") from exc
+
+                # Success — exit retry loop
+                break
 
             latency_ms = round((time.perf_counter() - start) * 1000, 2)
 

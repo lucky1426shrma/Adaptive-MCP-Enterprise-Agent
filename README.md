@@ -14,9 +14,9 @@ cited evidence in the final answer.
 
 ---
 
-## 🏆 micro1 Agentic Workflows Hackathon Submission
+## 🏆 Razorpay Buildathon Submission
 
-This project was built for the **micro1 Agentic Workflows Hackathon**. Below are the core hackathon deliverables, evaluation results, and reproduction guide.
+This project was built for the **Razorpay Buildathon**. Below are the core deliverables, benchmark evaluation results, and reproduction guide.
 
 ### 1. The Four Core Questions
 
@@ -93,6 +93,12 @@ docker compose run --rm rag-mcp-ingest
 ### 5. Representative Agent Trajectories
 
 Complete, representative step-by-step agent execution trajectories—covering multi-modal DB+RAG queries, document search, GitHub commit inspection, and self-corrective fallback loops—are preserved in [`docs/trajectories.json`](docs/trajectories.json).
+
+---
+
+### 6. Presentation Slide Deck & Video Script
+
+The complete 8-slide presentation deck—designed to accompany the 5-minute hackathon demo video—is preserved in [`docs/presentation_slides.md`](docs/presentation_slides.md).
 
 ---
 

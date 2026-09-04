@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     openrouter_model: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    openrouter_timeout_seconds: float = 60.0
+    openrouter_timeout_seconds: float = 90.0
 
     # --- Agent behavior ---
     # Caps LLM turns per request (not raw tool calls — one LLM turn can
@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     # Wall-clock cap for one full agent run (all LLM + tool round trips
     # combined), independent of mcp_timeout_seconds / openrouter_timeout_seconds
     # which bound individual calls.
-    agent_timeout_seconds: float = 90.0
+    agent_timeout_seconds: float = 120.0
 
     # --- Agentic RAG (Phase 8) ---
     # Caps rag__search_knowledge calls specifically, independent of
