@@ -6,7 +6,7 @@ needs — document retrieval, live database statistics, recent code
 history — and calls only those, through independent MCP servers, with
 cited evidence in the final answer.
 
-> **Status:** All 13 planned phases complete. Detailed technical documentation covering architecture, PII log redaction, security guardrails, and MCP microservices is available at [`docs/architecture_and_features.md`](docs/architecture_and_features.md). The incremental build log is at [`docs/phase-log.md`](docs/phase-log.md).
+> **Status:** All 13 planned phases complete. Detailed technical documentation covering architecture, PII log redaction, security guardrails, and MCP microservices is available at [`docs/architecture_and_features.md`](docs/architecture_and_features.md). The step-by-step production deployment blueprint (AWS ECS, Cloud Run, RDS, SSL/TLS) is at [`docs/production_deployment.md`](docs/production_deployment.md). The incremental build log is at [`docs/phase-log.md`](docs/phase-log.md).
 
 ---
 
