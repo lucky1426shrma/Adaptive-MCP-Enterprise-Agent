@@ -6,11 +6,7 @@ needs — document retrieval, live database statistics, recent code
 history — and calls only those, through independent MCP servers, with
 cited evidence in the final answer.
 
-> **Status:** All 13 planned phases complete. This README is the full
-> project documentation. The incremental, phase-by-phase build log
-> (what was added and why, in order) is preserved at
-> [`docs/phase-log.md`](docs/phase-log.md) for anyone who wants the
-> narrative of how this was built rather than the finished state.
+> **Status:** All 13 planned phases complete. Detailed technical documentation covering architecture, PII log redaction, security guardrails, and MCP microservices is available at [`docs/architecture_and_features.md`](docs/architecture_and_features.md). The incremental build log is at [`docs/phase-log.md`](docs/phase-log.md).
 
 ---
 
